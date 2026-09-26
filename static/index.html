@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Employee Attrition Risk & HR Decision Support System | ML + AWS</title>
+  <meta name="description" content="AI/ML-Powered Employee Attrition Risk Analysis and HR Decision Support System built with Scikit-Learn, FastAPI, and AWS Cloud Architecture.">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="header-container">
+    <div class="header-inner">
+      <div class="brand-section">
+        <div class="brand-icon">
+          <i class="fa-solid fa-users-gear"></i>
+        </div>
+        <div>
+          <div class="brand-title">HR RiskPulse</div>
+          <div class="brand-subtitle">AI-Powered Employee Attrition Risk & Decision Support System</div>
+        </div>
+      </div>
+      <div class="header-status">
+        <span class="status-dot"></span>
+        <span id="system-status-text">ML Model Active | v2.0</span>
+      </div>
+    </div>
+    
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs-wrapper" role="tablist">
+      <button class="nav-tab active" data-tab="tab-overview">
+        <i class="fa-solid fa-chart-pie"></i> Executive Overview
+      </button>
+      <button class="nav-tab" data-tab="tab-predict">
+        <i class="fa-solid fa-user-check"></i> Single Prediction
+      </button>
+      <button class="nav-tab" data-tab="tab-bulk">
+        <i class="fa-solid fa-file-csv"></i> CSV Bulk Analysis
+      </button>
+      <button class="nav-tab" data-tab="tab-explorer">
+        <i class="fa-solid fa-table-list"></i> Employee Risk Explorer
+      </button>
+      <button class="nav-tab" data-tab="tab-architecture">
+        <i class="fa-solid fa-brain"></i> Model & Architecture
+      </button>
+    </nav>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="main-content">
+
+    <!-- ============================================================
+         TAB 1: EXECUTIVE OVERVIEW & ANALYTICS
+         ============================================================ -->
+    <div id="tab-overview" class="tab-pane active">
+      <!-- KPI Row -->
+      <div class="kpi-grid">
+        <div class="glass-card kpi-card kpi-blue">
+          <div class="kpi-label">Total Organization Headcount</div>
+          <div class="kpi-value" id="kpi-total-employees">1,470</div>
+          <div class="kpi-desc">IBM HR Dataset Profile</div>
+        </div>
+        <div class="glass-card kpi-card kpi-red">
+          <div class="kpi-label">Predicted High-Risk Staff</div>
+          <div class="kpi-value" id="kpi-high-risk">38</div>
+          <div class="kpi-desc">Probability ≥ 60% (Immediate Focus)</div>
+        </div>
+        <div class="glass-card kpi-card kpi-amber">
+          <div class="kpi-label">Predicted Medium-Risk Staff</div>
+          <div class="kpi-value" id="kpi-med-risk">96</div>
+          <div class="kpi-desc">Probability 30% - 60% (Pulse Check)</div>
+        </div>
+        <div class="glass-card kpi-card kpi-green">
+          <div class="kpi-label">Predicted Low-Risk Staff</div>
+          <div class="kpi-value" id="kpi-low-risk">1,336</div>
+          <div class="kpi-desc">Probability &lt; 30% (Stable Cohort)</div>
+        </div>
+        <div class="glass-card kpi-card kpi-cyan">
+          <div class="kpi-label">Historical Attrition Rate</div>
+          <div class="kpi-value" id="kpi-attrition-rate">16.12%</div>
+          <div class="kpi-desc">237 Departures Recorded</div>
+        </div>
+      </div>
+
+      <!-- Charts Row 1 -->
+      <div class="charts-grid-2">
+        <div class="glass-card">
+          <div class="card-title-row">
+            <div>
+              <h3 class="card-title"><i class="fa-solid fa-chart-donut"></i> Predicted Risk Distribution</h3>
+              <p class="card-subtitle">Organization-wide calibrated attrition risk segments</p>
+            </div>
+          </div>
+          <div class="chart-container">
+            <canvas id="chart-risk-dist"></canvas>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <div class="card-title-row">
+            <div>
+              <h3 class="card-title"><i class="fa-solid fa-building-user"></i> Attrition by Department</h3>
+              <p class="card-subtitle">Retention vs Departure count across organizational units</p>
+            </div>
+          </div>
+          <div class="chart-container">
+            <canvas id="chart-dept-attrition"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Row 2 -->
+      <div class="charts-grid-2">
+        <div class="glass-card">
+          <div class="card-title-row">
+            <div>
+              <h3 class="card-title"><i class="fa-solid fa-clock"></i> Overtime Workload Impact</h3>
+              <p class="card-subtitle">Comparison of attrition frequency with mandatory overtime</p>
+            </div>
+          </div>
+          <div class="chart-container">
+            <canvas id="chart-overtime"></canvas>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <div class="card-title-row">
+            <div>
+              <h3 class="card-title"><i class="fa-solid fa-face-smile"></i> Job Satisfaction Rating Correlation</h3>
+              <p class="card-subtitle">Attrition outcomes segmented by employee satisfaction level (1 to 4)</p>
+            </div>
+          </div>
+          <div class="chart-container">
+            <canvas id="chart-satisfaction"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ============================================================
+         TAB 2: SINGLE EMPLOYEE RISK PREDICTION
+         ============================================================ -->
+    <div id="tab-predict" class="tab-pane">
+      <div class="prediction-layout">
+        
+        <!-- Left Column: Input Form -->
+        <div class="glass-card">
+          <div class="card-title-row">
+            <div>
+              <h2 class="card-title"><i class="fa-solid fa-id-card-clip"></i> Employee Assessment Profile</h2>
+              <p class="card-subtitle">Input employee attributes to compute model-estimated attrition risk</p>
+            </div>
+          </div>
+
+          <!-- Quick Test Presets -->
+          <div class="preset-btn-group">
+            <span style="font-size: 0.8rem; color: var(--text-muted); display: flex; align-items: center; margin-right: 0.25rem;">Quick Presets:</span>
+            <button class="btn btn-outline btn-sm" id="btn-preset-high"><i class="fa-solid fa-fire text-danger" style="color: #f87171;"></i> High Risk Profile</button>
+            <button class="btn btn-outline btn-sm" id="btn-preset-low"><i class="fa-solid fa-shield-halved" style="color: #4ade80;"></i> Low Risk Profile</button>
+            <button class="btn btn-outline btn-sm" id="btn-preset-mod"><i class="fa-solid fa-scale-balanced" style="color: #fbbf24;"></i> Moderate Profile</button>
+          </div>
+
+          <form id="prediction-form">
+            <!-- Section 1: Demographics & Role -->
+            <div class="form-section-title"><i class="fa-solid fa-user"></i> 1. Demographics & Job Role</div>
+            <div class="form-grid-3">
+              <div class="form-group">
+                <label class="form-label" for="inp-age">Age (Years)</label>
+                <input type="number" id="inp-age" class="form-control" value="30" min="18" max="70" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="inp-gender">Gender</label>
+                <select id="inp-gender" class="form-select">
+                  <option value="Female">Female</option>
+                  <option value="Male">Male</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="inp-marital">Marital Status</label>
+                <select id="inp-marital" class="form-select">
+                  <option value="Single">Single</option>
+                  <option value="Married">Married</option>
+                  <option value="Divorced">Divorced</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="inp-dept">Department</label>
+                <select id="inp-dept" class="form-select">
+                  <option value="Research & Development">Research & Development</option>
+                  <option value="Sales">Sales</option>
+                  <option value="Human Resources">Human Resources</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="inp-role">Job Role</label>
+                <select id="inp-role" class="form-select">
+                  <option value="Research Scientist">Research Scientist</option>
+                  <option value="Laboratory Technician">Laboratory Technician</option>
+                  <option value="Sales Executive">Sales Executive</option>
+                  <option value="Sales Representative">Sales Representative</option>
+                  <option value="Healthcare Representative">Healthcare Representative</option>
+                  <option value="Manufacturing Director">Manufacturing Director</option>
+                  <option value="Manager">Manager</option>
+                  <option value="Research Director">Research Director</option>
+                  <option value="Human Resources">Human Resources</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="inp-level">Job Level (1 - 5)</label>
+                <select id="inp-level" class="form-select">
+                  <option value="1">1 - Entry Level</option>
+                  <option value="2" selected>2 - Junior / Mid</option>
+                  <option value="3">3 - Senior</option>
+                  <option value="4">4 - Lead / Manager</option>
+                  <option value="5">5 - Executive</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Section 2: Compensation & Schedule -->
+            <div class="form-section-title"><i class="fa-solid fa-dollar-sign"></i> 2. Compensation & Work Schedule</div>
+            <div class="form-grid-3">
+              <div class="form-group">
+                <label class="form-label" for="inp-income">Monthly Income ($)</label>
+                <input type="number" id="inp-income" class="form-control" value="5000" min="1000" max="30000" step="100" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="inp-stock">Stock Option Level (0 - 3)</label>
+                <select id="inp-stock" class="form-select">
+                  <option value="0">0 - None</option>
+                  <option value="1" selected>1 - Low Grant</option>
+                  <option value="2">2 - Medium Grant</option>
+                  <option value="3">3 - High Grant</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="inp-overtime">Overtime Status</label>
+                <select id="inp-overtime" class="form-select">
+                  <option value="No">No Overtime</option>
+                  <option value="Yes">Yes (Mandatory Overtime)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="inp-travel">Business Travel</label>
+                <select id="inp-travel" class="form-select">
+                  <option value="Non-Travel">Non-Travel</option>
+                  <option value="Travel_Rarely" selected>Travel Rarely</option>
+                  <option value="Travel_Frequently">Travel Frequently</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="inp-distance">Commute Distance (Miles)</label>
+                <input type="number" id="inp-distance" class="form-control" value="5" min="1" max="60" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="inp-hike">Salary Hike %</label>
+                <input type="number" id="inp-hike" class="form-control" value="15" min="0" max="50" required>
+              </div>
+            </div>
+
+            <!-- Section 3: Engagement & Experience -->
+            <div class="form-section-title"><i class="fa-solid fa-heart-pulse"></i> 3. Engagement & Experience</div>
+            <div class="form-grid-3">
+              <div class="form-group">
+                <label class="form-label" for="inp-js">Job Satisfaction</label>
+                <select id="inp-js" class="form-select">
+                  <option value="1">1 - Low</option>
+                  <option value="2">2 - Medium</option>
+                  <option value="3" selected>3 - High</option>
+                  <option value="4">4 - Very High</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="inp-env">Environment Satisfaction</label>
+                <select id="inp-env" class="form-select">
+                  <option value="1">1 - Low</option>
+                  <option value="2">2 - Medium</option>
+                  <option value="3" selected>3 - High</option>
+                  <option value="4">4 - Very High</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="inp-wlb">Work-Life Balance</label>
+                <select id="inp-wlb" class="form-select">
+                  <option value="1">1 - Bad</option>
+                  <option value="2">2 - Good</option>
+                  <option value="3" selected>3 - Better</option>
+                  <option value="4">4 - Best</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="inp-involvement">Job Involvement</label>
+                <select id="inp-involvement" class="form-select">
+                  <option value="1">1 - Low</option>
+                  <option value="2">2 - Medium</option>
+                  <option value="3" selected>3 - High</option>
+                  <option value="4">4 - Very High</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="inp-tenure">Years at Company</label>
+                <input type="number" id="inp-tenure" class="form-control" value="5" min="0" max="40" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="inp-promo">Years Since Promotion</label>
+                <input type="number" id="inp-promo" class="form-control" value="1" min="0" max="30" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="inp-mgr">Years with Manager</label>
+                <input type="number" id="inp-mgr" class="form-control" value="3" min="0" max="30" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="inp-companies">Past Companies Worked</label>
+                <input type="number" id="inp-companies" class="form-control" value="2" min="0" max="20" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="inp-totalyears">Total Career Experience</label>
+                <input type="number" id="inp-totalyears" class="form-control" value="8" min="0" max="50" required>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div style="margin-top: 1.5rem;">
+              <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.85rem;" id="btn-predict-submit">
+                <i class="fa-solid fa-magnifying-glass-chart"></i> Predict Attrition Risk & Important Factors
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Right Column: Results & Explainability Card -->
+        <div>
+          <div class="glass-card" id="prediction-result-card">
+            <div class="card-title-row">
+              <h3 class="card-title"><i class="fa-solid fa-square-poll-vertical"></i> Assessment Output</h3>
+              <span class="badge badge-low" id="res-badge">Low Risk</span>
+            </div>
+
+            <!-- Hero gauge & score -->
+            <div class="result-hero">
+              <div class="gauge-meter-wrapper">
+                <canvas id="gauge-chart" width="140" height="140"></canvas>
+                <div class="gauge-percentage" id="res-percentage">0.6%</div>
+              </div>
+              <h4 id="res-headline" style="color: #fff; font-size: 1.15rem; margin-bottom: 0.25rem;">Predicted: Retention Likely</h4>
+              <p id="res-wording" style="font-size: 0.82rem; color: var(--text-secondary);">Model-estimated attrition probability: 0.6%</p>
+            </div>
+
+            <!-- Top Risk-Increasing Factors -->
+            <div style="margin-bottom: 1.25rem;">
+              <h4 style="font-size: 0.85rem; color: #f87171; text-transform: uppercase; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <i class="fa-solid fa-arrow-trend-up"></i> Important Risk-Increasing Factors
+              </h4>
+              <div class="factor-list" id="list-risk-factors">
+                <!-- Dynamically injected -->
+              </div>
+            </div>
+
+            <!-- Top Protective Factors -->
+            <div style="margin-bottom: 1.25rem;">
+              <h4 style="font-size: 0.85rem; color: #4ade80; text-transform: uppercase; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <i class="fa-solid fa-shield"></i> Protective Retention Factors
+              </h4>
+              <div class="factor-list" id="list-protective-factors">
+                <!-- Dynamically injected -->
+              </div>
+            </div>
+
+            <!-- HR Actionable Recommendations -->
+            <div>
+              <h4 style="font-size: 0.85rem; color: var(--accent-cyan); text-transform: uppercase; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                <i class="fa-solid fa-lightbulb"></i> Actionable HR Recommendations
+              </h4>
+              <ul class="recommendation-list" id="list-recommendations">
+                <!-- Dynamically injected -->
+              </ul>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+
+    <!-- ============================================================
+         TAB 3: CSV BULK PREDICTION
+         ============================================================ -->
+    <div id="tab-bulk" class="tab-pane">
+      <div class="glass-card" style="margin-bottom: 1.5rem;">
+        <div class="card-title-row">
+          <div>
+            <h2 class="card-title"><i class="fa-solid fa-file-arrow-up"></i> Bulk Employee CSV Assessment</h2>
+            <p class="card-subtitle">Upload a batch CSV file to analyze entire departments or cohorts simultaneously</p>
+          </div>
+          <button class="btn btn-outline btn-sm" id="btn-download-sample-csv">
+            <i class="fa-solid fa-download"></i> Download Template CSV
+          </button>
+        </div>
+
+        <!-- Dropzone -->
+        <div class="upload-dropzone" id="bulk-dropzone">
+          <div class="upload-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+          <h3 style="font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;">Drag and drop your Employee CSV here</h3>
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">Supports IBM HR Schema or standard employee feature files</p>
+          <input type="file" id="bulk-file-input" accept=".csv" style="display: none;">
+          <button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById('bulk-file-input').click()">
+            <i class="fa-solid fa-folder-open"></i> Browse Files
+          </button>
+        </div>
+
+        <!-- Batch Metrics Row (shown after upload) -->
+        <div id="bulk-summary-container" style="display: none; margin-bottom: 1.5rem;">
+          <div class="kpi-grid">
+            <div class="glass-card kpi-card kpi-blue">
+              <div class="kpi-label">Total Records Processed</div>
+              <div class="kpi-value" id="bulk-kpi-total">0</div>
+            </div>
+            <div class="glass-card kpi-card kpi-red">
+              <div class="kpi-label">High Risk Employees</div>
+              <div class="kpi-value" id="bulk-kpi-high">0</div>
+            </div>
+            <div class="glass-card kpi-card kpi-amber">
+              <div class="kpi-label">Medium Risk Employees</div>
+              <div class="kpi-value" id="bulk-kpi-med">0</div>
+            </div>
+            <div class="glass-card kpi-card kpi-green">
+              <div class="kpi-label">Low Risk Employees</div>
+              <div class="kpi-value" id="bulk-kpi-low">0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bulk Results Table -->
+        <div id="bulk-results-section" style="display: none;">
+          <div class="card-title-row">
+            <h3 class="card-title"><i class="fa-solid fa-list-check"></i> Batch Assessment Results</h3>
+            <button class="btn btn-primary btn-sm" id="btn-export-bulk-csv">
+              <i class="fa-solid fa-file-export"></i> Export Results with Predictions (.CSV)
+            </button>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table" id="bulk-table">
+              <thead>
+                <tr>
+                  <th>Employee ID</th>
+                  <th>Department</th>
+                  <th>Job Role</th>
+                  <th>Prediction</th>
+                  <th>Model Probability</th>
+                  <th>Risk Category</th>
+                  <th>Key Indicators</th>
+                </tr>
+              </thead>
+              <tbody id="bulk-table-body">
+                <!-- Rows injected dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+
+    <!-- ============================================================
+         TAB 4: EMPLOYEE RISK EXPLORER TABLE
+         ============================================================ -->
+    <div id="tab-explorer" class="tab-pane">
+      <div class="glass-card">
+        <div class="card-title-row">
+          <div>
+            <h2 class="card-title"><i class="fa-solid fa-table-cells"></i> Organization Employee Risk Explorer</h2>
+            <p class="card-subtitle">Search, filter, and inspect predictive risk profiles across all employee records</p>
+          </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+          <div class="form-group" style="min-width: 220px;">
+            <input type="text" id="explorer-search" class="form-control" placeholder="Search by Role, ID, or Dept...">
+          </div>
+          <div class="form-group">
+            <select id="explorer-filter-dept" class="form-select">
+              <option value="All">All Departments</option>
+              <option value="Research & Development">Research & Development</option>
+              <option value="Sales">Sales</option>
+              <option value="Human Resources">Human Resources</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <select id="explorer-filter-risk" class="form-select">
+              <option value="All">All Risk Levels</option>
+              <option value="High">High Risk (≥60%)</option>
+              <option value="Medium">Medium Risk (30-60%)</option>
+              <option value="Low">Low Risk (&lt;30%)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-responsive">
+          <table class="data-table" id="explorer-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Age</th>
+                <th>Department</th>
+                <th>Job Role</th>
+                <th>Monthly Salary</th>
+                <th>Overtime</th>
+                <th>Satisfaction</th>
+                <th>Work-Life</th>
+                <th>Predicted Risk</th>
+                <th>Risk Category</th>
+              </tr>
+            </thead>
+            <tbody id="explorer-table-body">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ============================================================
+         TAB 5: MODEL & CLOUD ARCHITECTURE
+         ============================================================ -->
+    <div id="tab-architecture" class="tab-pane">
+      <div class="glass-card" style="margin-bottom: 1.5rem;">
+        <div class="card-title-row">
+          <h2 class="card-title"><i class="fa-solid fa-diagram-project"></i> Machine Learning & Cloud Architecture</h2>
+          <span class="badge badge-low">Production Ready</span>
+        </div>
+        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.5rem;">
+          This end-to-end system implements a robust Scikit-Learn pipeline trained on IBM HR Analytics data, paired with a high-concurrency FastAPI microservice, real-time Linear SHAP log-odds feature attribution, and modern AWS cloud deployment architecture.
+        </p>
+
+        <div class="arch-grid">
+          <!-- ML Pipeline Box -->
+          <div class="glass-card" style="background: rgba(0,0,0,0.3);">
+            <h3 style="color: var(--accent-cyan); font-size: 1.05rem; margin-bottom: 0.75rem;">
+              <i class="fa-solid fa-sliders"></i> ML Pipeline & Evaluation
+            </h3>
+            <ul style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.7; padding-left: 1.2rem;">
+              <li><strong>Algorithm:</strong> Logistic Regression Pipeline with One-Hot & Numerical Passthrough</li>
+              <li><strong>Model Accuracy:</strong> 87.8% on Holdout Test Set</li>
+              <li><strong>ROC-AUC Score:</strong> 0.842 (Strong discrimination ability)</li>
+              <li><strong>Explainability Method:</strong> Additive Local Feature Attribution: <br>
+                <code style="color: #a5f3fc;">Contribution_i = (x_i - E[X_i]) × β_i</code>
+              </li>
+              <li><strong>Risk Calibration:</strong> Categorized into Low (&lt;30%), Medium (30-60%), High (≥60%)</li>
+            </ul>
+          </div>
+
+          <!-- AWS Cloud Architecture Box -->
+          <div class="glass-card" style="background: rgba(0,0,0,0.3);">
+            <h3 style="color: #fbbf24; font-size: 1.05rem; margin-bottom: 0.75rem;">
+              <i class="fa-brands fa-aws"></i> AWS Cloud Deployment
+            </h3>
+            <ul style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.7; padding-left: 1.2rem;">
+              <li><strong>Primary Compute:</strong> AWS App Runner / AWS Elastic Beanstalk (Containerized)</li>
+              <li><strong>Alternative Compute:</strong> Amazon ECS (Fargate) or EC2 with Docker</li>
+              <li><strong>Container Runtime:</strong> Python 3.11-slim + Uvicorn ASGI Server</li>
+              <li><strong>Storage:</strong> S3 Bucket for Batch CSV Artifacts & Datasets</li>
+              <li><strong>Monitoring:</strong> Amazon CloudWatch Container Logs & Health Alarms</li>
+            </ul>
+          </div>
+
+          <!-- API Endpoints Box -->
+          <div class="glass-card" style="background: rgba(0,0,0,0.3);">
+            <h3 style="color: #4ade80; font-size: 1.05rem; margin-bottom: 0.75rem;">
+              <i class="fa-solid fa-network-wired"></i> REST API Endpoints
+            </h3>
+            <ul style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.7; padding-left: 1.2rem;">
+              <li><code style="color: #86efac;">GET /health</code> — Service status & model verification</li>
+              <li><code style="color: #86efac;">POST /predict</code> — Single employee assessment + factors</li>
+              <li><code style="color: #86efac;">POST /predict-bulk</code> — Batch CSV upload & risk scoring</li>
+              <li><code style="color: #86efac;">GET /analytics</code> — Aggregated organization statistics</li>
+              <li><code style="color: #86efac;">GET /docs</code> — Interactive Swagger OpenAPI Docs</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Wording & Ethics Notice -->
+        <div style="margin-top: 1.5rem; background: rgba(99, 102, 241, 0.08); border-left: 4px solid var(--accent-primary); padding: 1rem; border-radius: var(--radius-sm);">
+          <h4 style="color: #fff; font-size: 0.9rem; margin-bottom: 0.25rem;"><i class="fa-solid fa-circle-info"></i> Ethical AI & HR Decision Support Notice</h4>
+          <p style="font-size: 0.8rem; color: var(--text-secondary);">
+            The model provides statistical estimations of attrition risk and highlights correlated predictive indicators. It does not claim to determine individual personal reasons for leaving. HR professionals must use these insights as proactive conversation starters rather than deterministic judgments.
+          </p>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    Employee Attrition Rate Prediction using Machine Learning + AWS Cloud Architecture | HR Decision Support System
+  </footer>
+
+  <!-- Custom Application Script -->
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

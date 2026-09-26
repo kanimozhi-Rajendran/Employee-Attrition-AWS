@@ -1,71 +1,84 @@
 import os
-import joblib
-import pandas as pd
+import sys
+from pathlib import Path
 
-# Project root folder
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# Add parent directory to sys.path for direct script execution
+BASE_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(BASE_DIR))
 
-# Model path
-MODEL_PATH = os.path.join(BASE_DIR, "models", "attrition_model.pkl")
+from src.model_service import ModelService
+from src.schemas import EmployeeInput
 
-# Load model
-model = joblib.load(MODEL_PATH)
+def main():
+    print("================================================================")
+    print("   EMPLOYEE ATTRITION RISK & HR DECISION SUPPORT SYSTEM")
+    print("================================================================")
 
-# Create employee input
-employee = {
-    "Age": 30,
-    "BusinessTravel": "Travel_Rarely",
-    "DailyRate": 800,
-    "Department": "Research & Development",
-    "DistanceFromHome": 5,
-    "Education": 3,
-    "EducationField": "Life Sciences",
-    "EmployeeCount": 1,
-    "EmployeeNumber": 9999,
-    "EnvironmentSatisfaction": 3,
-    "Gender": "Female",
-    "HourlyRate": 60,
-    "JobInvolvement": 3,
-    "JobLevel": 2,
-    "JobRole": "Research Scientist",
-    "JobSatisfaction": 3,
-    "MaritalStatus": "Single",
-    "MonthlyIncome": 5000,
-    "MonthlyRate": 15000,
-    "NumCompaniesWorked": 2,
-    "Over18": "Y",
-    "OverTime": "No",
-    "PercentSalaryHike": 15,
-    "PerformanceRating": 3,
-    "RelationshipSatisfaction": 3,
-    "StandardHours": 80,
-    "StockOptionLevel": 1,
-    "TotalWorkingYears": 8,
-    "TrainingTimesLastYear": 3,
-    "WorkLifeBalance": 3,
-    "YearsAtCompany": 5,
-    "YearsInCurrentRole": 3,
-    "YearsSinceLastPromotion": 1,
-    "YearsWithCurrManager": 3
-}
+    # Initialize model service (loads model & baseline attributions once)
+    service = ModelService.get_instance()
 
-# Convert input into DataFrame
-employee_df = pd.DataFrame([employee])
+    # Sample Employee Profile
+    sample_employee = EmployeeInput(
+        Age=30,
+        Gender="Female",
+        MaritalStatus="Single",
+        Department="Research & Development",
+        JobRole="Research Scientist",
+        JobLevel=2,
+        BusinessTravel="Travel_Rarely",
+        DistanceFromHome=5,
+        Education=3,
+        EducationField="Life Sciences",
+        MonthlyIncome=5000,
+        DailyRate=800,
+        HourlyRate=60,
+        MonthlyRate=15000,
+        PercentSalaryHike=15,
+        StockOptionLevel=1,
+        EnvironmentSatisfaction=3,
+        JobSatisfaction=3,
+        JobInvolvement=3,
+        RelationshipSatisfaction=3,
+        WorkLifeBalance=3,
+        PerformanceRating=3,
+        OverTime="No",
+        NumCompaniesWorked=2,
+        TotalWorkingYears=8,
+        TrainingTimesLastYear=3,
+        YearsAtCompany=5,
+        YearsInCurrentRole=3,
+        YearsSinceLastPromotion=1,
+        YearsWithCurrManager=3,
+    )
 
-# Prediction
-prediction = model.predict(employee_df)[0]
+    # Execute Prediction Pipeline
+    result = service.predict_single(sample_employee)
 
-# Probability
-probability = model.predict_proba(employee_df)[0]
+    print("\n--- PREDICTION SUMMARY ---")
+    print(f"Prediction Result     : {result.prediction}")
+    print(f"Risk Level Category   : {result.risk_category} Risk")
+    print(f"Attrition Probability : {result.attrition_risk_percentage}")
+    print(f"Formal Summary        : {result.summary_wording}")
 
-print("====================================")
-print("   EMPLOYEE ATTRITION PREDICTION")
-print("====================================")
+    print("\n--- TOP RISK-INCREASING FACTORS ---")
+    if result.top_risk_factors:
+        for f in result.top_risk_factors:
+            print(f" [+] [{f.feature_label}]: {f.feature_value} -> {f.description}")
+    else:
+        print(" [i] No significant elevated risk factors identified.")
 
-print(f"\nPrediction: {prediction}")
+    print("\n--- TOP PROTECTIVE RETENTION FACTORS ---")
+    if result.top_protective_factors:
+        for f in result.top_protective_factors:
+            print(f" [-] [{f.feature_label}]: {f.feature_value} -> {f.description}")
+    else:
+        print(" [i] Standard baseline protective attributes.")
 
-print("\nPrediction Probability:")
-for class_name, prob in zip(model.classes_, probability):
-    print(f"{class_name}: {prob:.2%}")
+    print("\n--- ACTIONABLE HR RECOMMENDATIONS ---")
+    for rec in result.hr_recommendations:
+        print(f" [>] {rec}")
 
-print("====================================")
+    print("================================================================")
+
+if __name__ == "__main__":
+    main()
